@@ -6,7 +6,7 @@ QTRSensors qtr;
 
 const uint8_t SensorCount = 5;
 uint16_t sensorValues[SensorCount];
-const int startButton = A4;
+const int agiSwitch = A4;
 
 // LEFT MOTOR PINS
 #define PWMA 9 // speed control
@@ -36,7 +36,7 @@ tS = 110    tS = 112    tS = 112
 int lastError = 0;
 
 void setup() {
-  pinMode(startButton, INPUT_PULLUP);
+  pinMode(agiSwitch, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(AIN1, OUTPUT);
   pinMode(AIN2, OUTPUT);
@@ -70,13 +70,13 @@ void setup() {
   delay(100);
   Serial.println("Waiting for button press");
   
-  while(digitalRead(startButton) == LOW) {
-    // wait for button press tp initialize the loop
+  while(digitalRead(agiSwitch) == LOW) {
+    // wait for button press to initialize the loop
   }
-  delay(5000);
 }
 
 void loop() {
+  delay(5000);
   uint16_t position = qtr.readLineBlack(sensorValues);
   if (position > 6700) {
     move(1, turnSpeed, 1);
