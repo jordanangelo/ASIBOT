@@ -66,7 +66,10 @@ void setup() {
   delay(500);
   Serial.println("Calibration Success");
   digitalWrite(LED_BUILTIN, LOW);
-  
+
+  while(digitalRead(startButton) == LOW) {
+    // wait for button press tp initialize the loop
+  }
   delay(5000);
 }
 
