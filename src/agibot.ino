@@ -69,6 +69,7 @@ void setup() {
 
   while(digitalRead(startButton) == LOW) {
     // wait for button press tp initialize the loop
+    Serial.println("Waiting for button press");
   }
   delay(5000);
 }
