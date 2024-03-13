@@ -1,31 +1,32 @@
 #include <SharpIR.h>
 #include <QTRSensors.h>
+#include <ezButton.h>
 
 SharpIR sensor(SharpIR:: GP2Y0A41SK0F, A7);
 QTRSensors qtr;
 
-const uint8_t SensorCount = 5;
+const uint8_t SensorCount = 6;
 uint16_t sensorValues[SensorCount];
-const int agiSwitch = A4;
-
-// LEFT MOTOR PINS
-#define PWMA 9 // speed control
-#define AIN1 2
-#define AIN2 3
+const int startButton = 10;
 
 // RIGHT MOTOR PINS
-#define PWMB 10 // speed control
-#define BIN1 5
-#define BIN2 6
+#define PWMA 10 // speed control
+#define AIN1 5
+#define AIN2 6
+
+// LEFT MOTOR PINS
+#define PWMB 9 // speed control
+#define BIN1 2
+#define BIN2 3
 
 // PID TUNING
-#define Kp 1
-#define Kd 79
-#define maxSpeed 188
-#define baseSpeed 148
-#define turnSpeed 112
+#define Kp 1.9 // 0.041
+#define Kd 40 // 0
+#define maxSpeed 210
+#define baseSpeed 170
+#define turnSpeed 110
 
-/* Presets
+/* Tuning Presets
 Kp = 2      Kp = 1      Kp = 1
 Kd = 40     Kd = 62     Kd = 62
 mS = 210    mS = 188    mS = 218
@@ -34,9 +35,11 @@ tS = 110    tS = 112    tS = 112
 */
 
 int lastError = 0;
+long now = millis();
+long lastMeasure = 0;
 
 void setup() {
-  pinMode(agiSwitch, INPUT_PULLUP);
+  pinMode(startButton, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(AIN1, OUTPUT);
   pinMode(AIN2, OUTPUT);
@@ -46,54 +49,48 @@ void setup() {
   pinMode(PWMB, OUTPUT);
   Serial.begin(9600);
   qtr.setTypeRC();
-  qtr.setSensorPins((const uint8_t[]){A0, A1, A2, A3, A6}, SensorCount);
+  qtr.setSensorPins((const uint8_t[]){A0, A1, A2, A3, A4, A5}, SensorCount);
   delay(250);
 
   // calibrate sensors
   digitalWrite(LED_BUILTIN, HIGH);
-  for (uint8_t i = 0; i < 85; i++) {
-    if (i< 25 || i < 75) {
-      move(0, 80, 1);
-      move(1, 80, 0);
-    }
-    else {
+  for (uint8_t i = 0; i < 100; i++) {
+    if (i < 25 || i > 75) {
       move(0, 80, 0);
       move(1, 80, 1);
+    } 
+    else {
+      move(0, 80, 1);
+      move(1, 80, 0);
     }
     qtr.calibrate();
     delay(10);
   }
   delay(500);
-  Serial.println("Calibration Success");
+  move(0, 0, 0);
+  move(1, 0, 0);
   digitalWrite(LED_BUILTIN, LOW);
-
-  delay(100);
-  Serial.println("Waiting for button press");
-  
-  while(digitalRead(agiSwitch) == LOW) {
-    // wait for button press to initialize the loop
-  }
+  delay(5000);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void loop() {
-  delay(5000);
   uint16_t position = qtr.readLineBlack(sensorValues);
-  if (position > 6700) {
-    move(1, turnSpeed, 1);
-    move(0, turnSpeed, 0);
-    return;
-  }
-  if (position < 300) {
+
+  if (position > 4700) {
     move(1, turnSpeed, 0);
     move(0, turnSpeed, 1);
     return;
   }
-
+  if (position < 300) {
+    move(1, turnSpeed, 1);
+    move(0, turnSpeed, 0);
+    return;
+  }
   // PID Algorithm
   int error = position - 3500;
   int motorSpeed = Kp * error + Kd * (error - lastError);
   lastError = error;
-
   int rightMotorSpeed = baseSpeed + motorSpeed;
   int leftMotorSpeed = baseSpeed - motorSpeed;
 
@@ -109,9 +106,8 @@ void loop() {
   if (leftMotorSpeed < 0) {
     leftMotorSpeed = 0;
   }
-
-  move(1, rightMotorSpeed, 1);
-  move(0, leftMotorSpeed, 1);
+  move(1, rightMotorSpeed, 0);
+  move(0, leftMotorSpeed, 0);
 }
 
 void move (int motor, int speed, int direction) {
