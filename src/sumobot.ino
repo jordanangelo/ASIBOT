@@ -58,7 +58,7 @@ void loop() {
   qtr.read(sensorValues);
   //Serial.println(sensorValues);
 
-  if (sensorValues[0] < QTR_THRESHOLD) {
+  if (sensorValues[0] < QTR_THRESHOLD || sensorValues[1] < QTR_THRESHOLD) {
     // Leftmost Sensor Detected the Border
     move(1, speedBackward, 1);
     move(0, speedBackward, 1);
@@ -73,7 +73,7 @@ void loop() {
     move(1, speedForward, 1);
     move(0, speedForward, 1);*/
   } 
-  else if (sensorValues[3] < QTR_THRESHOLD) {
+  else if (sensorValues[3] < QTR_THRESHOLD || sensorValues[2] < QTR_THRESHOLD) {
     // Rightmost Sensor Detected The Border
     move(1, speedBackward, 1);
     move(0, speedBackward, 1);
@@ -112,11 +112,12 @@ void loop() {
       delay(300);
       move(0, speedCharge, 0);
       move(1, 0, 0);
-      delay(100);
+      delay(100);/*
       move(0, speedCharge, 0);
-      move(1, speedCharge, 0);
+      move(1, speedCharge, 0);*/
     }
     else {
+      // search
       move(1, speedForward, 0);
       move(0, speedTurn, 0);
     }
