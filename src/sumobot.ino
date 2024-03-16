@@ -10,16 +10,15 @@ ezButton intelSwitch(8); // toggle switch for intellibot
 
 const uint8_t SensorCount = 4;
 uint16_t sensorValues[SensorCount];
-#define startButton 11;
 
 // Arena Settings
-#define QTR_THRESHOLD 300  // microseconds (need tuning per each environment)
+#define QTR_THRESHOLD 300  // need tuning per each environment
 
 // Speed Settings
 #define speedTurn 100     // Default - 80
-#define speedForward 55   // Default - 255
+#define speedForward 60   // Default - 255
 #define speedBackward 100  // Default - 255
-#define speedCharge 120    // Default - 255
+#define speedCharge 150    // Default - 255
 
 // Left Motor Pins
 #define PWMA 10   // speedControl
@@ -36,9 +35,10 @@ int lastError = 0;
 
 void setup() {
   Serial.begin(9600);
+  sumoSwitch.setDebounceTime(50);
   qtr.setTypeRC();
   qtr.setSensorPins((const uint8_t[]){
-                      A0, A3, A4, A5},
+                      A0, A1, A4, A5},
                     SensorCount);
   qtr.setEmitterPin(8);
   pinMode(PWMA, OUTPUT);
@@ -49,7 +49,6 @@ void setup() {
   pinMode(BIN2, OUTPUT);
   delay(5000);
   startRoutine();
-
 }
 
 void loop() {
@@ -58,33 +57,33 @@ void loop() {
   qtr.read(sensorValues);
   //Serial.println(sensorValues);
 
-  if (sensorValues[0] < QTR_THRESHOLD || sensorValues[1] < QTR_THRESHOLD) {
+  if (sensorValues[0] < QTR_THRESHOLD) {
     // Leftmost Sensor Detected the Border
-    move(1, speedBackward, 1);
     move(0, speedBackward, 1);
-    delay(500); 
-    move(0, speedTurn, 1);
-    move(1, 0, 1);
+    move(1, speedBackward, 1);
+    delay(600); 
+    move(1, speedTurn, 1);
+    move(0, 0, 0);
     if (distance < 20) {
-      move(1, speedCharge, 0);
-      move(0, speedCharge, 0);
+      move(1, 0, 0);
+      move(0, 0, 0);
     }
-    delay(600);/*
+    delay(800);/*
     move(1, speedForward, 1);
     move(0, speedForward, 1);*/
   } 
-  else if (sensorValues[3] < QTR_THRESHOLD || sensorValues[2] < QTR_THRESHOLD) {
+  else if (sensorValues[3] < QTR_THRESHOLD) {
     // Rightmost Sensor Detected The Border
     move(1, speedBackward, 1);
     move(0, speedBackward, 1);
-    delay(500);
-    move(1, speedTurn, 0);
-    move(0, 0, 1);
-    if (distance < 20) {
-      move(1, speedCharge, 0);
-      move(0, speedCharge, 0);
+    delay(600);
+    move(0, speedTurn, 0);
+    move(1, 0, 1);
+    while (distance < 20) {
+      move(1, 0, 0);
+      move(0, 0, 0);
     }
-    delay(600);/*
+    delay(800);/*
     move(1, speedForward, 1);
     move(0, speedForward, 1);*/
   } 
@@ -102,24 +101,24 @@ void loop() {
       move(0, speedCharge, 1);
       return;
       }*/
-    }
-    else if (distance > 20 && distance <= 30) {      
+    }/*
+    else if (distance > 20 && distance <= 25) {      
       move(0, 0, 0);
       move(1, speedCharge, 0);
-      delay(100);
+      delay(200);
       move(0, speedCharge, 0);
       move(1, speedCharge, 0);
-      delay(300);
+      delay(400);
       move(0, speedCharge, 0);
       move(1, 0, 0);
-      delay(100);/*
+      delay(400);
       move(0, speedCharge, 0);
-      move(1, speedCharge, 0);*/
-    }
+      move(1, speedCharge, 0);
+    }*/
     else {
       // search
-      move(1, speedForward, 0);
-      move(0, speedTurn, 0);
+      move(1, 40, 0);
+      move(0, 80, 0);
     }
   }
 }
@@ -151,9 +150,9 @@ void startRoutine() {
   for(int i=0; i<2; i++) {
     move(1, 255, 1);
     move(0, 255, 0);
-    delay(900);
+    delay(3000);/*
     move(1, 0, 0);
     move(0, 0, 0);
-    delay(10);
+    delay(10);*/
   }
 }
